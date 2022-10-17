@@ -3,22 +3,26 @@ if(POLICY CMP0084)
   cmake_policy(SET CMP0084 NEW)
 endif()
 
-if (NOT QT_DIR AND MSVC)
-  if(_M_ARM_64)
-    set(QT_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.3.0/ARM64/lib/cmake/Qt6")
-  else()
-    set(QT_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.3.0/x64/lib/cmake/Qt6")
-  endif()
-endif()
+# if (NOT QT_DIR AND MSVC)
+#   if(_M_ARM_64)
+#     set(QT_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.3.0/ARM64/lib/cmake/Qt6")
+#   else()
+#     set(QT_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.3.0/x64/lib/cmake/Qt6")
+#   endif()
+# endif()
 
 set(CMAKE_AUTOMOC ON)
 
 # For some reason the method in Qt6 documentation is not working (at least on ubuntu jammy)
 # When Qt5 and Qt6 are given in same NAMES entry, only Qt5 is ever found.
-find_package(QT NAMES Qt6 COMPONENTS Core Gui Widgets)
-if(NOT QT_DIR)
+# find_package(QT NAMES Qt6 COMPONENTS Core Gui Widgets)
+# if(NOT QT_DIR)
+if (UNIX AND NOT APPLE)
   find_package(QT NAMES Qt5 COMPONENTS Core Gui Widgets)
+else()
+  find_package(QT NAMES Qt6 COMPONENTS Core Gui Widgets)
 endif()
+# endif()
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets)
 message(STATUS "Found Qt version ${QT_VERSION}")
 
@@ -663,12 +667,12 @@ if(APPLE)
     add_custom_command(TARGET dolphin-emu
       POST_BUILD COMMAND
       /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options=runtime --entitlements "${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmu$<$<CONFIG:Debug>:Debug>.entitlements" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Dolphin.app" || true)
-    
+
     # Code sign builds for build systems that do have release/debug variants (Xcode)
     add_custom_command(TARGET dolphin-emu
       POST_BUILD COMMAND
       /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options=runtime --entitlements "${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmuDebug.entitlements" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/Dolphin.app" || true)
-      
+
     add_custom_command(TARGET dolphin-emu
       POST_BUILD COMMAND
       /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options=runtime --entitlements "${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmu.entitlements" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/Dolphin.app" || true)
